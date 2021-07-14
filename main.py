@@ -9,6 +9,7 @@ from models.cdan_model import CDANModel
 from data.data_loader import get_train_val_dataloader
 from data.data_loader import get_target_dataloader
 from data.data_loader import get_test_dataloader
+torch.cuda.empty_cache()
 
 def main():
     config = get_config()
@@ -33,6 +34,26 @@ def main():
     # create data loaders
     src_loader, val_loader = get_train_val_dataloader(config.datasets.src)
     test_loader = get_test_dataloader(config.datasets.test)
+
+    # mean = 0.0
+    # for data in src_loader:
+    #     images = data['images']
+    #     batch_samples = images.size(0)
+    #     images = images.view(batch_samples, images.size(1), -1)
+    #     mean += images.mean(2).sum(0)
+    # mean = mean / len(src_loader.dataset)
+    #
+    # var = 0.0
+    # for data in src_loader:
+    #     batch_samples = images.size(0)
+    #     images = data['images']
+    #     images = images.view(batch_samples, images.size(1), -1)
+    #     var += ((images - mean.unsqueeze(1)) ** 2).sum([0, 2])
+    #
+    # std = torch.sqrt(var / (len(src_loader.dataset) * 224 * 224))
+    #
+    # print("Mean and std: ", mean, std)
+    # exit()
 
     tar_loader = None
     if config.datasets.get('tar', None):

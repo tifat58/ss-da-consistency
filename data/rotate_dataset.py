@@ -18,6 +18,7 @@ class RotateDataset(data.Dataset):
         elif split == 'test':
             names, labels = get_dataset_info(join(dirname(__file__), 'txt_lists', '%s_test.txt' % name))
 
+
         self.data_path = join(dirname(__file__), '..', 'datasets')
         self.names = names
         self.labels = labels

@@ -86,6 +86,24 @@ def get_train_transformers(args):
 
     return transforms.Compose(img_tr)
 
+def get_train_transformers_fgadr(args):
+    # size = args.img_transform.random_resize_crop.size
+    # scale = args.img_transform.random_resize_crop.scale
+    # img_tr = [transforms.RandomResizedCrop((int(size[0]), int(size[1])), (scale[0], scale[1]))]
+    # if args.img_transform.random_horiz_flip > 0.0:
+    #     img_tr.append(transforms.RandomHorizontalFlip(args.img_transform.random_horiz_flip))
+    # if args.img_transform.jitter > 0.0:
+    #     img_tr.append(transforms.ColorJitter(
+    #         brightness=args.img_transform.jitter, contrast=args.img_transform.jitter,
+    #         saturation=args.jitter, hue=min(0.5, args.jitter)))
+
+    mean = args.normalize.mean
+    std = args.normalize.std
+    img_tr = [transforms.Resize((222, 222)), transforms.ToTensor(), transforms.Normalize(mean=mean, std=std)]
+
+    return transforms.Compose(img_tr)
+
+
 def get_val_transformer(args):
     size = args.img_transform.random_resize_crop.size
     mean = args.normalize.mean

@@ -37,7 +37,9 @@ class AuxModel:
         cudnn.enabled = True
 
         # set up model
-        self.device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+
+        self.device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
+        print("Device: ", self.device)
         self.model = get_network(args.network.arch)(aux_classes=args.aux_classes + 1, classes=args.n_classes)
         self.model = self.model.to(self.device)
 
@@ -48,7 +50,15 @@ class AuxModel:
             self.optimizer = optimizer(self.model.get_parameters(), **optimizer_params)
             self.scheduler = get_scheduler(self.optimizer, self.args.training.lr_scheduler)
 
+            if self.args.training.class_weight:
+                c_weights = torch.FloatTensor(self.args.training.class_weight).to(self.device)
+                self.class_loss_func_main_task = nn.CrossEntropyLoss(weight = c_weights)
+                print(c_weights)
+            else:
+                self.class_loss_func_main_task = nn.CrossEntropyLoss()
+
             self.class_loss_func = nn.CrossEntropyLoss()
+
             # KL divergence loss
             self.KLD_loss_func = nn.KLDivLoss(reduction='batchmean')
 
@@ -106,10 +116,10 @@ class AuxModel:
 
                 # If true, the network will only try to classify the non scrambled images
                 if self.args.training.get('only_non_scrambled'):
-                    src_class_loss = self.class_loss_func(
+                    src_class_loss = self.class_loss_func_main_task(
                             src_class_logits[src_aux_lbls == 0], src_cls_lbls[src_aux_lbls == 0])
                 else:
-                    src_class_loss = self.class_loss_func(src_class_logits, src_cls_lbls)
+                    src_class_loss = self.class_loss_func_main_task(src_class_logits, src_cls_lbls)
 
                 src_kld_loss = torch.tensor(0.0)
                 if self.args.training.get('src_kld_weight'):
@@ -222,10 +232,12 @@ class AuxModel:
             self.logger.info('Start iter: %d ' % self.start_iter)
 
     def test(self, test_loader):
-        if isinstance(test_loader, list):
-            return self.test_multi_crop(test_loader)
-        else:
-            return self.test_single_crop(test_loader)
+        # Hasan: test function changed 7/7/2021
+        return self.test_single_crop(test_loader)
+        # if isinstance(test_loader, list):
+        #     return self.test_multi_crop(test_loader)
+        # else:
+        #     return self.test_single_crop(test_loader)
 
     def test_multi_crop(self, test_loaders):
         num_crops = len(test_loaders)

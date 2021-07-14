@@ -85,6 +85,7 @@ class CDANModel:
 
         # set up model
         self.device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+        print("Device: ", self.device)
         self.model = get_network(args.network.arch)(output='feature+class_logits', classes=args.n_classes)
         self.model = self.model.to(self.device)
         
